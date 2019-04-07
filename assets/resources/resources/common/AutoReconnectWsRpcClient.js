@@ -122,4 +122,11 @@ AutoReconnectWsRpcClient.prototype.off = function(cb){
     this.events.remove(cb);
 }
 
+AutoReconnectWsRpcClient.prototype.clear = function(cb) {
+    this.events = null;
+    if (this.client) {
+        this.client.clearSocket();
+    }
+}
+
 module.exports = AutoReconnectWsRpcClient;

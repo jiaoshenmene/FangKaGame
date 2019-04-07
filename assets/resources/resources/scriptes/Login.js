@@ -11,6 +11,9 @@
 var UmengNative = require("UmengNative")
 var UnitTools = require("UnitTools");
 var Config = require("Config");
+var PlatForm = require("PlatForm");
+var TestLogin = require("TestLogin");
+var LoginManager = require("LoginManager");
 
 cc.Class({
     extends: cc.Component,
@@ -32,12 +35,22 @@ cc.Class({
         //     }
         // },
         xieyiCheck: cc.Toggle,//协议按钮
-        weixinLoginBn: cc.Node
+        weixinLoginBn: cc.Node,
+        testLoginCom:TestLogin,
     },
 
     // LIFE-CYCLE CALLBACKS:
 
     onLoad () {
+        
+        if (!PlatForm.isAnroid() && !PlatForm.isIOS()) {
+            this.testLoginCom.node.active = true;
+            this.testLoginCom.setLoginEvent(function (account) {
+                console.log("登陆按钮响应");
+                console.log(account);
+                LoginManager.testLogin(account);
+            });
+        }
         this.weixinLoginBn.on(cc.Node.EventType.TOUCH_START, function (args) {
             if (!this.xieyiCheck.isChecked)return;
             // UmengNative.weixinLogin(function (loginData) {

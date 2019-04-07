@@ -257,8 +257,7 @@ UnitTools.load = function (url, cb,timeOut) {
         xhr.onreadystatechange = function () {
             if (xhr.readyState == 4 && xhr.status >= 200 && xhr.status < 400) {
                 response = true;
-                var response = xhr.responseText;
-                cb(null, response);
+                cb(null, xhr.responseText);
             }
         };
         xhr.open("GET", url, true);
@@ -291,8 +290,7 @@ UnitTools.request = function (url,dataJson,cb,timeOut) {
         xhr.onreadystatechange = function () {
             if (xhr.readyState == 4 && xhr.status >= 200 && xhr.status < 400) {
                 response = true;
-                var response = xhr.responseText;
-                cb(null, response);
+                cb(null, xhr.responseText);
             }
         };
         var finalUrl = dataStr==""?url:url+"?"+dataStr;
