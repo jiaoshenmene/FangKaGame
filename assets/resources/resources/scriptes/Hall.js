@@ -104,6 +104,15 @@ cc.Class({
                 numLab.string = clickNum;
                 self.clickCount+=1;
                 if (self.clickCount == 6){//大厅服务加入房间
+                    console.log("加入大厅");
+                    var tabNumStr = "";
+                    for (var idx = 0;idx <= 5;idx++){
+                        var numUi = cc.find(""+idx,self.shownumsUi);
+                        var numLab = cc.find("txt",numUi).getComponent(cc.Label);
+                        tabNumStr+=numLab.string;
+                    }
+                    console.log(tabNumStr);
+                    self.joinTable(tabNumStr);
 
                 }
 
@@ -123,6 +132,32 @@ cc.Class({
             var numUi = cc.find(""+self.clickCount,self.shownumsUi);
             var numLab = cc.find("txt",numUi).getComponent(cc.Label);
             numLab.string = "";
+        })
+    },
+
+    joinTable:function (tableId){
+        console.log(tableId);
+        //调用服务器方法，来创建房间
+        NetWorkManager.onConnectedToHall(function (hallService) {
+            hallService.proxy.joinTable(tableId,function (data) {
+                console.log("加入房间结果");
+                console.log(data);
+                if (data.ok&&data.suc){
+                    NetWorkManager.connectAndAuthToGame(User.account,User.pass,data.gameUrl);
+                    NetWorkManager.onConnectedToGame(function () {//连接游戏服务器成功
+                        var loginData = User.loginToGameData;
+                        if (loginData.isInGame) { //在游戏里，跳转到游戏界面
+                            cc.director.loadScene("game");
+                        } else {//不在服务器，提示创建失败
+                            NetWorkManager.clearGameService();
+                        }
+                    });
+                } else {//创建失败提示
+
+                }
+
+            });
+
         })
     },
 

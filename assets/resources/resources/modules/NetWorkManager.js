@@ -4,6 +4,7 @@
 var AutoReconnectWsRpcClient = require("AutoReconnectWsRpcClient");
 var User = require("User");
 var EventEmitter = require("EventEmitter")
+var Handler = require("Handler");
 class NetWorkManager{
     static connectAndAuthToHall(account,pass,url) {//cb 2params baseinfo service
         if (NetWorkManager.g_HallService === null) {
@@ -65,6 +66,7 @@ class NetWorkManager{
     static connectAndAuthToGame(account,pass,url) { //cb 2params baseinfo service
         if (NetWorkManager.g_GameService === null) {
             NetWorkManager.g_GameService = new AutoReconnectWsRpcClient();
+            NetWorkManager.g_GameService.addRpc(Handler.service);
             NetWorkManager.g_GameService.connect(url);
             NetWorkManager.g_GameService.onClose(function () {
                 //连接中断
