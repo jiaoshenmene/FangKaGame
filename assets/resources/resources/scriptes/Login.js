@@ -14,6 +14,7 @@ var Config = require("Config");
 var PlatForm = require("PlatForm");
 var TestLogin = require("TestLogin");
 var LoginManager = require("LoginManager");
+var Handler = require("Handler");
 
 cc.Class({
     extends: cc.Component,
@@ -42,6 +43,8 @@ cc.Class({
     // LIFE-CYCLE CALLBACKS:
 
     onLoad () {
+
+
         
         if (!PlatForm.isAnroid() && !PlatForm.isIOS()) {
             this.testLoginCom.node.active = true;
