@@ -13,6 +13,9 @@ var User = require("User");
 var Handler = require("Handler");
 var Majiang = require("Chess").Majiang;
 
+//声明
+//type 1 表示自己  2 表示其他位置
+
 cc.Class({
     extends: cc.Component,
 
@@ -36,6 +39,10 @@ cc.Class({
             default:[],
             type:cc.Prefab
         },
+        hitCardsPfb:{
+            default:[],
+            type:cc.Prefab
+        },
         cardImages:cc.SpriteAtlas
     },
 
@@ -43,6 +50,7 @@ cc.Class({
 
     onLoad () {
         this.posCount = 4;
+        this.selfPos = 2;
         this.headRoot = {};
         this.headSpUi = {};
         this.nameUi = {};
@@ -56,17 +64,24 @@ cc.Class({
 
         this.handCardsUi = cc.find("handcards",this.node);  //手里牌的ui的根结点
 
+        this.hitCardsUi = cc.find("hitcards",this.node); //出牌Ui的根结点
+
 
         this.pInfos = {};//保存玩家信息
-        this.clearToStart();
+
         Handler.instance().logicCom = this;
 
         this.handCardsPos = this.createHandCardPos();
+        this.hitCardsPos = this.createHitCardPos();
         this.createHitCardPos();
         this.selfHandCard = new Array(34);
+        this.hitCards = {};
+
         for (var i = 0; i < 34;i++){
             this.selfHandCard[i] = {};//11:{ui:};
         }
+        this.handCards = new Array(this.posCount); //[{cardIndex,ui}]
+        this.clearToStart();
     },
 
     clearToStart(){
@@ -74,6 +89,9 @@ cc.Class({
             this.headRoot[pos].active = false;
             this.nameUi[pos].getComponent(cc.Label).string = "";
             this.scoreUi[pos].getComponent(cc.Label).string = "";
+            this.hitCards[pos] = {};
+            var cards = this.handCards[pos] = new Array(14);
+            cards.fill(null);
         }
     },
     createHandCardPos(){//创建所有位置手里牌的位置
@@ -99,11 +117,32 @@ cc.Class({
                 }
             }
         }
+        console.log("handCardsPos = %o",handCardsPos);
         return handCardsPos;
     },
 
     createHitCardPos(){ //创建所有位置打出去牌的位置
+        var posArray = new Array(this.posCount);
+        posArray[0] = {startPos:{x:175,y:70},offset:{x:-35,y:0},lineOffset:{x:0,y:42}};
+        posArray[1] = {startPos:{x:-250,y:150},offset:{x:0,y:-29},lineOffset:{x:-47,y:0}};
+        posArray[2] = {startPos:{x:-175,y:-80},offset:{x:35,y:0},lineOffset:{x:0,y:-41}};
+        posArray[3] = {startPos:{x:250,y:-150},offset:{x:0,y:29},lineOffset:{x:47,y:0}};
+        var hitCardsPos = new Array(this.posCount);
+        for(var pos = 0;pos<this.posCount;pos++){
+            var cardPos = new Array(25);
+            hitCardsPos[pos] = cardPos;
+            for(var index = 0;index<25;index++){
+                var position = cardPos[index] = {};
+                var config = posArray[pos];
+                var line = parseInt(index/10);
+                var lineIndex = index%10;
+                position.x = config.startPos.x + lineIndex * config.offset.x + config.lineOffset.x * line;
+                position.y = config.startPos.y + lineIndex * config.offset.y + config.lineOffset.y * line;
 
+            }
+        }
+
+        return hitCardsPos;
     },
     createHandCardUi(pos,cardIndex){
         var pfb = this.handCardsPfb[pos];
@@ -115,6 +154,33 @@ cc.Class({
         }
         return cardUi;
 
+    },
+
+    createHitCardUi(pos,cardIndex){
+        var preStr = ["h","l","h","r"];
+        var pfb = this.hitCardsPfb[pos];
+        var cardUi = cc.instantiate(pfb);
+        var sp = this.cardImages.getSpriteFrame(preStr[pos]+Majiang.smCard(cardIndex));
+        cardUi.getComponent(cc.Sprite).spriteFrame = sp;
+        return cardUi;
+    },
+
+    addHitCardUi(pos,cardIndex){
+        var hitCardUi = this.createHitCardUi(pos,cardIndex);
+        //设置位置
+        var index = Object.keys(this.hitCards[pos]).length;
+        var postion = this.hitCardsPos[pos][index];
+        hitCardUi.x = postion.x;hitCardUi.y = postion.y;
+        var zIndex = 0;
+        if(pos == 0 || pos == 3){
+            zIndex = 25 - index;
+        }
+        if(pos == 1 || pos == 2){
+            zIndex = index;
+        }
+        hitCardUi.zIndex = zIndex;
+        this.hitCardsUi.addChild(hitCardUi);
+        this.hitCards[pos][cardIndex] = {ui:hitCardUi,cardIndex:cardIndex};
     },
 
     getScreenPos(selfLogicPos,logicPos){
@@ -152,17 +218,31 @@ cc.Class({
 
     adjustSelfHandCard(){
         var cardCount = 0;
-        for (var i = 33; i >= 0;i--){
+        for(var i = 33;i>=0;i--){
             var cards = this.selfHandCard[i];
-            for (var cardIndex in cards){
+            for(var cardIndex in cards){
                 cardIndex = parseInt(cardIndex);
                 var ui = cards[cardIndex].ui;
-                var index = 12 - cardIndex;
+                var index = 12 - cardCount;
                 cardCount+=1;
                 var pos = this.handCardsPos[2][index];
-                ui.x = pos.x;
-                ui.y = pos.y;
+                ui.x = pos.x;ui.y = pos.y;
             }
+        }
+    },
+
+    touchCard(scrPos,cardIndex,type){
+
+        console.log("scrpos : "+scrPos);
+        var cardUi = this.createHandCardUi(scrPos,cardIndex);
+        var pos = this.handCardsPos[scrPos][13];
+        cardUi.x = pos.x;cardUi.y = pos.y;
+        this.handCardsUi.addChild(cardUi);
+        var handCars = this.handCards[scrPos];
+        handCars[13] = {cardIndex:cardIndex,ui: cardUi};
+        if (type == 1){
+            var tIndex = Majiang.tIndex(cardIndex);
+            this.selfHandCard[tIndex][cardIndex] = {ui:cardUi};
         }
     },
 
@@ -182,6 +262,7 @@ cc.Class({
         //处理frames里的消息（历史消息）
         for (var idx in frames){
             var frame = frames[idx];
+            console.log("qwertyuiop handle"+frame.eventName);
             Handler.instance()["handle"+frame.eventName](frame.data);
         }
         //处理，消息队列里的消息
@@ -202,6 +283,7 @@ cc.Class({
         this.showHead(4,2,"http://i4.fuimg.com/583278/00e2ef22ec67b9b0.jpg","鸡蛋");
         this.showHead(5,3,"http://i4.fuimg.com/583278/00e2ef22ec67b9b0.jpg","鸡蛋");
 
+        console.log(this.handCardsPos);
         //-----------------手里牌测试----------------------
         for(var i = 0;i<14;i++){
             var cardUi = this.createHandCardUi(2,19);
@@ -225,6 +307,14 @@ cc.Class({
             cardUi.x = pos.x;cardUi.y = pos.y;
             cardUi.zIndex = 14 - i;
             this.handCardsUi.addChild(cardUi);
+        }
+        // -------------- 打牌测试 --------------
+        for (var i = 0;i < 25;i++) {
+            var randomIndex = UnitTools.random(0,Majiang.cards.length-1);
+            var cardIndex = Majiang.cards[randomIndex];
+            for (var pos = 0;pos < this.posCount;pos++){
+                this.addHitCardUi(pos,cardIndex);
+            }
         }
 
     },

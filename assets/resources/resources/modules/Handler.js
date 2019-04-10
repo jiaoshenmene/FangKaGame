@@ -52,10 +52,28 @@ class Handler {
         this.logicCom.adjustSelfHandCard();
     }
 
+    handletouchCard(data){
+        console.log("handletouchCard" + data);
 
-    test(){
-        console.log("test");
+        var pos = data.pos;
+        var cardIndex_s = data.cardIndex_s;
+        var scrPos = this.logicCom.getScreenPos(User.pos,pos);
+        var type = User.pos == pos ? 1 : 2;
+        this.logicCom.touchCard(scrPos,cardIndex_s,type);
     }
+
+    handletoHitCard(data){
+
+    }
+
+    handlehitCard(data){
+        // var pos = data.pos;
+        // var cardIndex = data.cardIndex;
+        // var scrPos = this.logicCom.getScreenPos(User.pos,pos);
+        // var type = User.pos == pos ? 1 : 2;
+        // this.logicCom.hitcard(scrPos,cardIndex,type);
+    }
+
 
 
 }
@@ -77,4 +95,21 @@ Handler.service.startCards = function (data,cb) {
     cc.log("收到startCards消息：%o",data);
     Handler.instance().eventQueue.push({evetnName:"startCards",data:data});
     //Handler.instance().handlestartCards(data);
+}
+
+Handler.service.touchCard = function (data,cb) {
+    cc.log("收到touchCard消息：%o",data);
+    Handler.instance().eventQueue.push({evetnName:"touchCard",data:data});
+
+}
+
+Handler.service.toHitCard = function (data,cb) {
+    cc.log("收到toHitCard消息：%o",data);
+    Handler.instance().eventQueue.push({evetnName:"toHitCard",data:data});
+
+}
+Handler.service.hitCard = function (data,cb) {
+    cc.log("收到hitCard消息：%o",data);
+    Handler.instance().eventQueue.push({evetnName:"hitCard",data:data});
+
 }
