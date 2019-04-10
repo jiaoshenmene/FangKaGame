@@ -12,6 +12,7 @@ var UnitTools = require("UnitTools");
 var User = require("User");
 var Handler = require("Handler");
 var Majiang = require("Chess").Majiang;
+var NetWorkManager = require("NetWorkManager");
 
 //声明
 //type 1 表示自己  2 表示其他位置
@@ -65,6 +66,8 @@ cc.Class({
         this.handCardsUi = cc.find("handcards",this.node);  //手里牌的ui的根结点
 
         this.hitCardsUi = cc.find("hitcards",this.node); //出牌Ui的根结点
+
+        this.turnTime = cc.find("turntime",this.node);
 
 
         this.pInfos = {};//保存玩家信息
@@ -230,20 +233,104 @@ cc.Class({
             }
         }
     },
+    adjustHandCard(pos){
+        var handCards = this.handCards[pos];
+        var startIndex = 12;
+        for(var idx in handCards){
+            var card = handCards[idx];
+            if(card == null)continue;
+            var position = this.handCardsPos[pos][startIndex];
+            card.ui.x = position.x;
+            card.ui.y = position.y;
+            card.ui.zIndex = startIndex;
+            startIndex-=1;
+        }
+    },
 
     touchCard(scrPos,cardIndex,type){
-
-        console.log("scrpos : "+scrPos);
         var cardUi = this.createHandCardUi(scrPos,cardIndex);
         var pos = this.handCardsPos[scrPos][13];
         cardUi.x = pos.x;cardUi.y = pos.y;
         this.handCardsUi.addChild(cardUi);
         var handCars = this.handCards[scrPos];
         handCars[13] = {cardIndex:cardIndex,ui: cardUi};
+
         if (type == 1){
             var tIndex = Majiang.tIndex(cardIndex);
             this.selfHandCard[tIndex][cardIndex] = {ui:cardUi};
+            this.bindCardEvt(cardIndex,cardUi);
+
         }
+    },
+
+    turn(scrPos,time = 20){
+        if (this.timeSche) this.unschedule(this.timeSche);
+        var rotations = [180,90,0,-90];
+        this.turnTime.getChildByName("point").rotation = rotations[scrPos];
+        //超时tick
+        this.turnTime.getChildByName("text").getComponent(cc.Label).string = time;
+        this.timeSche = function () {
+            time-=1;
+            this.turnTime.getChildByName("text").getComponent(cc.Label).string = time;
+        }.bind(this)
+        this.schedule(this.timeSche,1,19,0);
+
+    },
+    hitCard(scrPos,cardIndex,type) {
+        this.addHitCardUi(scrPos, cardIndex);
+        if (type == 1) {
+            var tIndex = Majiang.tIndex(cardIndex);
+            var ui = this.selfHandCard[tIndex][cardIndex].ui;
+            ui.removeFromParent(true);
+            delete this.selfHandCard[tIndex][cardIndex];
+            this.adjustSelfHandCard();
+        } else if (type == 2) {
+            var handCards = this.handCards[scrPos];
+            for (var idx in handCards) {
+                var card = handCards[idx];
+                if (card == null) continue;
+                card.ui.removeFromParent(true);
+                handCards[idx] = null;
+                break;
+            }
+            this.adjustHandCard(scrPos);
+        }
+    },
+
+    bindCardEvt(cardIndex,cardUi){
+        var self = this;
+        cardUi.cardIndex = cardIndex;
+        cardUi.popUp = false;
+        CreatorHelper.setNodeClickEvent(cardUi,function () {
+            if (cardUi.popUp == true){
+                //出牌
+                console.log("出牌："+cardIndex);
+                NetWorkManager.onConnectedToGame(function (client) {
+                    var data = {};
+                    data.cardIndex = cardIndex;
+                    data.actionId = self.actionId;
+                    client.proxy.hitCard(data,function (data) {
+                        console.log(data);
+
+                    })
+                })
+            }else {//自己弹起，其他牌都下去
+                for (var tIndex in this.selfHandCard) {
+                    var cards = this.selfHandCard[tIndex];
+                    for (var cIdx in cards){
+                        var ui = cards[cIdx].ui;
+                        if (!ui.popUp)continue;
+                        ui.y-=40;
+                        ui.popUp = false;
+                    }
+                }
+                cardUi.y+=40;
+                cardUi.popUp = true;
+
+            }
+
+        }.bind(this))
+
     },
 
     normalStart(){
@@ -262,7 +349,6 @@ cc.Class({
         //处理frames里的消息（历史消息）
         for (var idx in frames){
             var frame = frames[idx];
-            console.log("qwertyuiop handle"+frame.eventName);
             Handler.instance()["handle"+frame.eventName](frame.data);
         }
         //处理，消息队列里的消息
@@ -284,12 +370,19 @@ cc.Class({
         this.showHead(5,3,"http://i4.fuimg.com/583278/00e2ef22ec67b9b0.jpg","鸡蛋");
 
         console.log(this.handCardsPos);
+
         //-----------------手里牌测试----------------------
         for(var i = 0;i<14;i++){
+            var cardIndex = Majiang.cards[i];
+
             var cardUi = this.createHandCardUi(2,19);
             var pos = this.handCardsPos[2][i];
             cardUi.x = pos.x;cardUi.y = pos.y;
             this.handCardsUi.addChild(cardUi);
+
+            var tIndex = Majiang.tIndex(cardIndex);
+            this.selfHandCard[tIndex][''+cardIndex] = {ui:cardUi};
+            this.bindCardEvt(cardIndex,cardUi);
 
             var cardUi = this.createHandCardUi(0,19);
             var pos = this.handCardsPos[0][i];
@@ -320,11 +413,9 @@ cc.Class({
     },
 
     update (dt) {
-        console.log("eventQueue = %o",Handler.instance().eventQueue);
+
         for(var idx  in Handler.instance().eventQueue){
             var frame = Handler.instance().eventQueue[idx];
-            console.log("handle"+frame.evetnName);
-
             Handler.instance()["handle"+frame.evetnName](frame.data);
         }
         Handler.instance().eventQueue = [];//清空消息队列

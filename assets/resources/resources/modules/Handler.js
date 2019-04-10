@@ -30,24 +30,26 @@ class Handler {
 
             var tIndex = Majiang.tIndex(cardIndex);
             this.logicCom.selfHandCard[tIndex][''+cardIndex] = {ui:cardUi};
-
+            this.logicCom.bindCardEvt(cardIndex,cardUi);
 
             var cardUi = this.logicCom.createHandCardUi(0,cardIndex);
             var pos = this.logicCom.handCardsPos[0][i];
             cardUi.x = pos.x;cardUi.y = pos.y;
             this.logicCom.handCardsUi.addChild(cardUi);
+            this.logicCom.handCards[0][i] = {ui: cardUi,cardIndex:cardIndex};
 
             var cardUi = this.logicCom.createHandCardUi(1,cardIndex);
             var pos = this.logicCom.handCardsPos[1][i];
             cardUi.x = pos.x;cardUi.y = pos.y;
             this.logicCom.handCardsUi.addChild(cardUi);
-
+            this.logicCom.handCards[1][i] = {ui: cardUi,cardIndex:cardIndex};
 
             var cardUi = this.logicCom.createHandCardUi(3,cardIndex);
             var pos = this.logicCom.handCardsPos[3][i];
             cardUi.x = pos.x;cardUi.y = pos.y;
             cardUi.zIndex = 14-i;
             this.logicCom.handCardsUi.addChild(cardUi);
+            this.logicCom.handCards[2][i] = {ui: cardUi,cardIndex:cardIndex};
         }
         this.logicCom.adjustSelfHandCard();
     }
@@ -63,15 +65,18 @@ class Handler {
     }
 
     handletoHitCard(data){
-
+        var pos = data.pos;
+        var scrPos = this.logicCom.getScreenPos(User.pos,pos);
+        this.logicCom.turn(scrPos);
+        this.logicCom.actionId = data.actionId;
     }
 
     handlehitCard(data){
-        // var pos = data.pos;
-        // var cardIndex = data.cardIndex;
-        // var scrPos = this.logicCom.getScreenPos(User.pos,pos);
-        // var type = User.pos == pos ? 1 : 2;
-        // this.logicCom.hitcard(scrPos,cardIndex,type);
+        var pos = data.pos;
+        var cardIndex = data.cardIndex;
+        var scrPos = this.logicCom.getScreenPos(User.pos,pos);
+        var type = User.pos == pos ? 1 : 2;
+        this.logicCom.hitCard(scrPos,cardIndex,type);
     }
 
 
