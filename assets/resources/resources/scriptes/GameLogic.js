@@ -226,7 +226,7 @@ cc.Class({
         if(pos == 1 || pos == 2){
             zIndex = index;
         }
-        hitCardUi.setLocalZOrder(zIndex);
+        hitCardUi.zIndex = (zIndex);
         this.hitCardsUi.addChild(hitCardUi);
         this.hitCards[pos][cardIndex] = {ui:hitCardUi,cardIndex:cardIndex};
     },
@@ -298,7 +298,7 @@ cc.Class({
             var position = this.handCardsPos[pos][startIndex];
             card.ui.x = position.x;
             card.ui.y = position.y;
-            card.ui.setLocalZOrder(startIndex);
+            card.ui.zIndex = (startIndex);
             startIndex-=1;
         }
     },
@@ -316,10 +316,10 @@ cc.Class({
         }
     },
     turn(scrPos,time = 20){
-         if(this.timeSche)this.unschedule(this.timeSche);
-         var rotations = [180,90,0,-90];
-         this.turnTime.getChildByName("point").rotation = rotations[scrPos];
-         //超时tick
+        if(this.timeSche)this.unschedule(this.timeSche);
+        var rotations = [180,90,0,-90];
+        this.turnTime.getChildByName("point").rotation = rotations[scrPos];
+        //超时tick
         this.turnTime.getChildByName("text").getComponent(cc.Label).string = time;
 
         this.timeSche = function () {
@@ -381,7 +381,7 @@ cc.Class({
     },
     showActionSelectUi(actions){
         var selectAction = function (actionType,tIndex) {//调用服务器action选择
-            
+
         }
         this.selectaActionUi.removeAllChildren(true);
         var map = {1:1,2:2,3:2,4:2,5:3,6:3};
@@ -478,7 +478,7 @@ cc.Class({
             var cardUi = this.createHandCardUi(3,19);
             var pos = this.handCardsPos[3][i];
             cardUi.x = pos.x;cardUi.y = pos.y;
-            cardUi.setLocalZOrder(14-i);
+            cardUi.zIndex = (14-i);
             this.handCardsUi.addChild(cardUi);
         }
 
@@ -508,7 +508,7 @@ cc.Class({
 
         //---------------spash测试--------------------
         for(var pos = 0;pos<4;pos++){
-           this.addSplashUi(pos,1);
+            this.addSplashUi(pos,1);
         }
     },
     update (dt) {
