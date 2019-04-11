@@ -41,9 +41,9 @@
     },
     "_scale": {
       "__type__": "cc.Vec3",
-      "x": 0.2779296875,
-      "y": 0.2779296875,
-      "z": 0.2779296875
+      "x": 0.36248779296875,
+      "y": 0.36248779296875,
+      "z": 0.36248779296875
     },
     "_quat": {
       "__type__": "cc.Quat",
@@ -1336,7 +1336,7 @@
     "_zIndex": 0,
     "_is3DNode": false,
     "groupIndex": 0,
-    "_id": "98E/dKep9Gxp6uOjSz+Uk1"
+    "_id": "dckBaXUAdDlrX1CIuRXyGW"
   },
   {
     "__type__": "cc.Node",
@@ -1609,7 +1609,20 @@
         "__uuid__": "3deb3fe9-a3d5-4dda-a92d-ea59449a8151"
       }
     ],
-    "gangpengPfb": [],
+    "gangpengPfb": [
+      {
+        "__uuid__": "60b45eeb-8d6c-4ebe-a4f0-370a9be13358"
+      },
+      {
+        "__uuid__": "6f938e18-48f3-410f-a3f8-b5ea5d353b5d"
+      },
+      {
+        "__uuid__": "3956032f-b441-40df-9e3e-21ace611b1bc"
+      },
+      {
+        "__uuid__": "49c9954f-0938-434c-8786-dbee50ebc0d6"
+      }
+    ],
     "actionSelectPfb": {
       "__uuid__": "ce69a6f6-4d8a-4983-9566-c61d352bc710"
     },
@@ -1627,8 +1640,20 @@
         "__uuid__": "9eecea1c-14e2-4f83-ba3c-b39a1a84cc77"
       }
     ],
-    "actionSplashPfb": null,
-    "splashImages": [],
+    "actionSplashPfb": {
+      "__uuid__": "a33b7e07-216e-4ad5-b41e-575c394fd1ad"
+    },
+    "splashImages": [
+      {
+        "__uuid__": "a5025408-0738-4bf9-91f7-eeb4c374c443"
+      },
+      {
+        "__uuid__": "dd02e26a-eb8a-4aeb-8c9c-645c521d5cfb"
+      },
+      {
+        "__uuid__": "27acc6bb-547a-45b7-acb1-63860b1feda9"
+      }
+    ],
     "cardImages": {
       "__uuid__": "55e52a6e-8a21-4192-b626-713ca31692bf"
     },

@@ -86,8 +86,8 @@ cc.Class({
 
         this.handCardsPos = this.createHandCardPos();
         this.hitCardsPos = this.createHitCardPos();
-        // this.gangpengCardsPos = this.createGangpegnCardPos();
-        // this.splashPos = this.createSplashPos();
+        this.gangpengCardsPos = this.createGangpegnCardPos();
+        this.splashPos = this.createSplashPos();
 
         this.selfHandCard = new Array(34);
         this.hitCards = {};
@@ -494,20 +494,20 @@ cc.Class({
         actions[1] = {pos:2,tIndex:0};//创造了一个碰
         actions[2] = [{pos:2,tIndex:1},{pos:2,tIndex:2}];
         this.showActionSelectUi(actions);
-        //
-        // //---------------杠碰牌测试--------------------
-        // for(var pos = 0;pos<4;pos++){
-        //     for(var i = 0;i<4;i++){
-        //         var randomIndex = UnitTools.random(0,Majiang.cards.length-1);
-        //         var cardIndex = Majiang.cards[randomIndex];
-        //         this.addGangpengCardUi(pos,cardIndex,2,i);
-        //     }
-        // }
+
+        //---------------杠碰牌测试--------------------
+        for(var pos = 0;pos<4;pos++){
+            for(var i = 0;i<4;i++){
+                var randomIndex = UnitTools.random(0,Majiang.cards.length-1);
+                var cardIndex = Majiang.cards[randomIndex];
+                this.addGangpengCardUi(pos,cardIndex,2,i);
+            }
+        }
 
         //---------------spash测试--------------------
-        // for(var pos = 0;pos<4;pos++){
-        //     this.addSplashUi(pos,1);
-        // }
+        for(var pos = 0;pos<4;pos++){
+            this.addSplashUi(pos,1);
+        }
     },
     update (dt) {
         for(var idx  in Handler.instance().eventQueue){
