@@ -61,6 +61,7 @@ class Handler {
         var cardIndex_s = data.cardIndex_s;
         var scrPos = this.logicCom.getScreenPos(User.pos,pos);
         var type = User.pos == pos ? 1 : 2;
+        this.logicCom.turn(scrPos);
         this.logicCom.touchCard(scrPos,cardIndex_s,type);
     }
 

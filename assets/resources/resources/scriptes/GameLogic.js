@@ -239,6 +239,8 @@ cc.Class({
     },
     addGangpengCardUi(pos,cardIndex,type,index){
         var gangpengUi = this.createGangpengCardUi(pos,cardIndex,type);
+        gangpengUi.meta = {};
+        gangpengUi.meta.tIndex = Majiang.tIndex(cardIndex);
         var position = this.gangpengCardsPos[pos][index];
         gangpengUi.x = position.x;
         gangpengUi.y = position.y;
@@ -497,6 +499,7 @@ cc.Class({
             this.removeHandCardsAndAdjust(scrPos,cardIndexs);//2
             this.addGangpengCardUi(scrPos,cardIndex,actionType,this.gangpengCardsUi.children.length);//3
         }else if(actionType == HandAction.MingGang){//处理明杠
+            var cardIndex = data.cardIndex;
             this.addSplashUi(scrPos,actionType);//0
             var hitUi = this.hitCards[hitScrPos][cardIndex].ui;//1
             hitUi.removeFromParent(true);
