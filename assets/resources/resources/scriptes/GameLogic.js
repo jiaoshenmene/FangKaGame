@@ -13,6 +13,13 @@ var User = require("User");
 var Handler = require("Handler");
 var Majiang = require("Chess").Majiang;
 var NetWorkManager = require("NetWorkManager");
+
+var HandAction = {
+    Peng:1,
+    AnGang:2,
+    GuoluGang:3,
+    MingGang:4
+}
 //声明：
 //type 1表示自己 2表示其他位置
 cc.Class({
@@ -77,7 +84,7 @@ cc.Class({
         }
         this.handCardsUi = cc.find("handcards",this.node);//手里牌的ui根节点
         this.hitCardsUi = cc.find("hitcards",this.node);//出牌的Ui根节点
-        this.gangpegnCardsUi = cc.find("gangpengcards",this.node);//杠碰的牌
+        this.gangpengCardsUi = cc.find("gangpengcards",this.node);//杠碰的牌
         this.splashsUi = cc.find("splashs",this.node);//杠碰闪烁提示
         this.turnTime = cc.find("turntime",this.node);//指针
         this.pInfos = {};//保存玩家信息
@@ -227,13 +234,15 @@ cc.Class({
         hitCardUi.zIndex = (zIndex);
         this.hitCardsUi.addChild(hitCardUi);
         this.hitCards[pos][cardIndex] = {ui:hitCardUi,cardIndex:cardIndex};
+
+        console.log("addHitCardUi->%o",this.hitCards);
     },
     addGangpengCardUi(pos,cardIndex,type,index){
         var gangpengUi = this.createGangpengCardUi(pos,cardIndex,type);
         var position = this.gangpengCardsPos[pos][index];
         gangpengUi.x = position.x;
         gangpengUi.y = position.y;
-        this.gangpegnCardsUi.addChild(gangpengUi);
+        this.gangpengCardsUi.addChild(gangpengUi);
     },
     addSplashUi(pos,type){
         var map = {1:0,2:1,3:1,4:1,5:2,6:2};
@@ -313,6 +322,31 @@ cc.Class({
             this.bindCardEvt(cardIndex,cardUi);
         }
     },
+    removeHandCardsAndAdjust(pos,cardIndexs){//删除手里的牌，并进行整理
+        var type = pos == 2?1:2;
+        for(var idx in cardIndexs){
+            var cardIndex = cardIndexs[idx];
+            if(type == 1){
+                var tIndex = Majiang.tIndex(cardIndex);
+                var ui = this.selfHandCard[tIndex][cardIndex].ui;
+                ui.removeFromParent(true);
+                delete  this.selfHandCard[tIndex][cardIndex];
+
+            }else  if(type == 2){
+                var handCards = this.handCards[scrPos];
+                for(var idx in handCards){
+                    var card = handCards[idx];
+                    if(card == null)continue;
+                    card.ui.removeFromParent(true);
+                    handCards[idx] = null;
+                    break;
+                }
+
+            }
+        }
+        type == 1?this.adjustSelfHandCard():this.adjustHandCard(pos);
+
+    },
     turn(scrPos,time = 20){
         if(this.timeSche)this.unschedule(this.timeSche);
         var rotations = [180,90,0,-90];
@@ -378,7 +412,20 @@ cc.Class({
         }.bind(this))
     },
     showActionSelectUi(actions){
+        var self = this;
         var selectAction = function (actionType,tIndex) {//调用服务器action选择
+            NetWorkManager.onConnectedToGame(function (client) {
+                var data = {};
+                data.actionType = actionType;
+                data.tIndex = tIndex;
+                data.actionId = self.actionId;
+                client.proxy.selectAction(data,function (data) {
+                    console.log("选择结果 %o",data);
+                    self.selectaActionUi.removeAllChildren(true);
+
+                })
+
+            })
 
         }
         this.selectaActionUi.removeAllChildren(true);
@@ -420,6 +467,57 @@ cc.Class({
             }
         }
     },
+
+    handleDoAction(data){
+        //思路碰：
+        //0.显示碰的Splash
+        //1.打出去的牌删掉
+        //2.自己手里的两张牌删掉
+        //3.自己显示碰的牌
+        //4.重新整理自己手里的牌
+
+        console.log("handleDoAction  9877 %o",data);
+        var actionType = data.actionType;
+        var pos = data.pos;
+        var hitPos = data.hitPos;
+        var scrPos = this.getScreenPos(User.pos,pos);//屏幕位置
+        var hitScrPos = this.getScreenPos(User.pos,hitPos);//打牌人的屏幕位置
+        var cardIndex = data.hitIndex;
+        var cardIndexs = data.cardIndexs;
+        if(actionType == HandAction.Peng){//处理碰
+            this.addSplashUi(scrPos,actionType);//0
+            var hitUi = this.hitCards[hitScrPos][cardIndex].ui;//1
+            hitUi.removeFromParent(true);
+            delete this.hitCards[hitScrPos][cardIndex];
+            this.removeHandCardsAndAdjust(scrPos,cardIndexs);//2
+            this.addGangpengCardUi(scrPos,cardIndex,actionType,this.gangpengCardsUi.children.length);//3
+        }else if(actionType == HandAction.AnGang){//处理暗杠
+            var cardIndex = data.cardIndex;
+            this.addSplashUi(scrPos,actionType);
+            this.removeHandCardsAndAdjust(scrPos,cardIndexs);//2
+            this.addGangpengCardUi(scrPos,cardIndex,actionType,this.gangpengCardsUi.children.length);//3
+        }else if(actionType == HandAction.MingGang){//处理明杠
+            this.addSplashUi(scrPos,actionType);//0
+            var hitUi = this.hitCards[hitScrPos][cardIndex].ui;//1
+            hitUi.removeFromParent(true);
+            delete this.hitCards[hitScrPos][cardIndex];
+            this.removeHandCardsAndAdjust(scrPos,cardIndexs);//2
+            this.addGangpengCardUi(scrPos,cardIndex,actionType,this.gangpengCardsUi.children.length);//3
+        }else if(actionType == HandAction.GuoluGang){//处理过路杠
+            var cardIndex = data.cardIndex;
+            var uis = this.gangpengCardsUi.children;
+            this.addSplashUi(scrPos,actionType);
+            this.removeHandCardsAndAdjust(scrPos,cardIndexs);
+            for(var idx in uis){
+                var ui = uis[idx];
+                if(ui.meta.tIndex == Majiang.tIndex(cardIndex)){
+                    ui.children[3].active = true;
+                    break;
+                }
+            }
+        }
+    },
+
     normalStart(){
         //显示头像
         var self = this;
@@ -440,8 +538,8 @@ cc.Class({
         //处理，消息队列里的消息
     },
     start () {
-        //this.normalStart();
-        this.test();
+        this.normalStart();
+        // this.test();
     },
     test(){
         //----------------头像测试-------------------------

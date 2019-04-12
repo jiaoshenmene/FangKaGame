@@ -79,6 +79,16 @@ class Handler {
         this.logicCom.hitCard(scrPos,cardIndex,type);
     }
 
+    handletoWaitAction(data){
+        this.logicCom.actionId = data.actionId;
+        this.logicCom.showActionSelectUi(data.action);
+    }
+
+    handledoAction(data){
+        console.log("handledoAction");
+        this.logicCom.handleDoAction(data);
+    }
+
 
 
 }
@@ -117,4 +127,14 @@ Handler.service.hitCard = function (data,cb) {
     cc.log("收到hitCard消息：%o",data);
     Handler.instance().eventQueue.push({evetnName:"hitCard",data:data});
 
+}
+
+Handler.service.toWaitAction = function (data,cb) {
+    cc.log("收到toWaitAction消息：%o",data);
+    Handler.instance().eventQueue.push({evetnName:"toWaitAction",data:data});
+}
+
+Handler.service.doAction = function (data,cb) {
+    cc.log("收到doAction消息：%o",data);
+    Handler.instance().eventQueue.push({evetnName:"doAction",data:data});
 }
